@@ -6,16 +6,18 @@ from sklearn.preprocessing import MinMaxScaler, normalize
 from sklearn.metrics.pairwise import cosine_similarity, cosine_distances
 from scipy.sparse import hstack, csr_matrix
 import re
-
-
+import sys
 
 def remove_parens(x):
     return re.sub(r"[\(\[].*?[\)\]]", "", x).strip()
 
+def lowercase(x):
+    unicode_x = (x).lower()
+    return unicode_x
 
 
 def load_data():
-    df = pd.read_csv('goodreads_data.csv')
+    df = pd.read_csv('goodreads_data.csv', encoding="utf-8-sig")
 
     df = df.drop(df.columns[[0]], axis=1)
 
@@ -30,6 +32,7 @@ def load_data():
     df = df[df['Num_Ratings'] >= 10].reset_index(drop=True)
     df = df.drop_duplicates(subset=['Book'], keep='first').reset_index(drop=True)
     df['Book'] = df['Book'].apply(remove_parens)
+    df['Book'] = df['Book'].apply(lowercase)
 
     return df
 
@@ -76,39 +79,35 @@ def computing_distances(X):
 
 
 def create_indices(df):
-    return df.Series(df.index, index=df['Book'])
+    return pd.Series(df.index, index=df['Book'])
 
 
 # n books, all from different authors.
 def recommend_books(df, X, knn, indices, title, top_n = 5):
     d = set()
-    if title not in indices:
-        print("Book not in database. Make sure book is spelled correctly.")
-    else:
-        index = indices[title]
-        distances, neighbor_id = knn.kneighbors(X[index], top_n+20)
+    index = indices[title]
+    distances, neighbor_id = knn.kneighbors(X[index], top_n+20)
 
-        result = []
-        for dist, id in zip(distances[0][1:], neighbor_id[0][1:]):
-            row = df.iloc[id]
-            if d is None or row['Author'] not in d:
+    result = []
+    for dist, id in zip(distances[0][1:], neighbor_id[0][1:]):
+        row = df.iloc[id]
+        if d is None or row['Author'] not in d:
 
-                similarity_score = round(1 - dist, 3)
-                result.append(
-                    {
-                        "title": row['Book'],
-                        "rating" : float(row['Avg_Rating']),
-                        "similarity score": float(similarity_score),
-                        "author" : row['Author']
-                    }
+            similarity_score = round(1 - dist, 3)
+            result.append(
+                {
+                    "title": row['Book'],
+                    "rating" : float(row['Avg_Rating']),
+                    "similarity score": float(similarity_score),
+                    "author" : row['Author']
+                }
 
-                )
-            d.add(row['Author'])
-            if len(result) >= top_n:
-               break
+            )
+        d.add(row['Author'])
+        if len(result) >= top_n:
+            break
 
-            
-        return result
+    return result
 
 def print_list(lst):
     for line in lst:
@@ -116,21 +115,45 @@ def print_list(lst):
 
 
 def full_algorithm():
+
     df = load_data()
+    indices = create_indices(df)
+    user_input = input("Please enter a book: ")
+    if user_input not in indices:
+        print("Book is not in database, make sure is spelled correctly.")
+        sys.exit()
+
+
+
     desc_matrix = create_description_matrix(df)
     genre_matrix = create_genres_matrix(df)
     rating_matrix = create_rating_matrix(df)
-    X = stacking_matrix(desc_matrix, genre_matrix, rating_matrix)
+   
+    
+    top_n = int(input("How many similar books would you like? " ))
+    title_to_test = user_input.lower()
+    want_weight = int(input("Please enter 0 if you want deafult weights to features; enter 1 if want to modify: "))
+    if want_weight:
+        alpha = float(input("Please give a weight (between 0 and 1) to description: "))
+        beta = float(input(f"Please give a weight (between 0 and {1-alpha} to genres: "))
+        gamma = 1 - alpha - beta
+
+        X = stacking_matrix(desc_matrix, genre_matrix, rating_matrix, alpha, beta, gamma)
+    else:    
+        X = stacking_matrix(desc_matrix, genre_matrix, rating_matrix)
 
     knn = computing_distances(X)
-    indices = create_indices(df)
-    title_to_test = "To Kill a Mockingbird"
-
-    print_list(recommend_books(df, X, knn, indices, title_to_test, top_n=5))
+    
+    print_list(recommend_books(df, X, knn, indices, title_to_test, top_n))
 
 def print_list(lst):
     for line in lst:
         print(line)
+
+
+def test():
+    df = load_data()
+    print(df[df['Author'] == 'A.A. Milne'])
 
 if __name__ == "__main__":
     full_algorithm()
