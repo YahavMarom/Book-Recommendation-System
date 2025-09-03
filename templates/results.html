@@ -1,0 +1,30 @@
+{% extends "layout.html" %}
+
+{% block body %}
+
+<h1>Similar books for {{ book }}:</h1>
+    <ol>
+        {% for rec in recommendations %}
+            <li>
+                {{rec.title }} by {{rec.author}}, rating = {{rec.rating}}, similarity = {{rec["similarity score"]}}
+            </li>
+        {% endfor %}
+        
+
+    </ol>
+
+
+    <a href="/">
+        <button>
+            Search a new book
+        </button>
+    </a>
+
+    <p>Would you like to set different weights for the book? </p>
+    <a href=" {{ url_for('custom', book=book)}}">
+        <button>Adjust weights</button>
+
+    </a>
+
+
+{% endblock %}

@@ -1,0 +1,12 @@
+{% extends "layout.html" %}
+
+{% block body %}
+
+<h1>Find Similar Books</h1>
+<form action="/search" method="POST">
+    <input autocomplete="off" autofocus name="book_title" placeholder="Enter a book" type="text">
+    <button type="submit">Search</button>
+</form>
+
+
+{% endblock %}
