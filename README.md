@@ -1,6 +1,6 @@
 # Book Recommendation System
 
-A book recommendation system designed for discovering similar books from different authors. If you loved Harry Potter, this will help you find similar books by authors other than J.K. Rowling!
+A book recommendation system designed for discovering similar books from different authors. 
 
 ## Demo
 
@@ -73,7 +73,7 @@ The system uses K-Nearest Neighbors (KNN) with cosine distance on matrices repre
 3. Results show books by **different authors** to help you discover new writers
 4. You can then find recommendations by different weights.
 
-## ⚡ Optimizations
+## Optimizations
 
 **Problem**: Computing similarity matrices for each search was slow (~4 seconds per request)
 
