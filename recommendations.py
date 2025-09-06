@@ -6,6 +6,9 @@ from sklearn.preprocessing import MinMaxScaler, normalize
 from scipy.sparse import hstack, csr_matrix
 import re
 import sys
+from langdetect import detect, DetectorFactory
+DetectorFactory.seed = 0
+
 
 def remove_parens(x):
     return re.sub(r"[\(\[].*?[\)\]]", "", x).strip()
@@ -14,10 +17,22 @@ def lowercase(x):
     unicode_x = (x).lower()
     return unicode_x
 
+def is_english(text):
+
+    if re.fullmatch(r"[A-Za-z0-9\s'\":;,\-!?.]+", text):
+        return True
+    
+    try: 
+        return detect(str(text)) == "en"
+    except:
+        return False
+
+
 
 def load_data():
     df = pd.read_csv('data/data.csv', encoding="utf-8-sig")
 
+    df = df[df['Book'].apply(is_english)]
     df['Description'] = df['Description'].fillna('')
     df['Genres'] = df['Genres'].fillna('')
 
@@ -30,7 +45,6 @@ def load_data():
     df['Book'] = df['Book'].apply(remove_parens)
     df['Book'] = df['Book'].apply(lowercase)
     df = df.drop_duplicates(subset=['Book'], keep='first').reset_index(drop=True)
-
     return df
 
 
