@@ -4,7 +4,7 @@ A book recommendation system designed for discovering similar books from differe
 
 ## Demo
 
-![Demo](docs/demo.gif)
+![Demo](images/demo.mp4)
 
 
 ## About The Project
