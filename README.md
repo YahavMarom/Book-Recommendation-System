@@ -1,10 +1,14 @@
+
+
+
+
 # Book Recommendation System
 
 A book recommendation system designed for discovering similar books from different authors. 
 
 ## Demo
 
-![Demo](images/demo.mp4)
+![Demo]([images/demo.mp4](https://github.com/user-attachments/assets/761bcf2e-efb7-49a3-ba7f-6f069c0b2e81))
 
 
 ## About The Project
