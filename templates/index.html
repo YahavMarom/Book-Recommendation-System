@@ -1,12 +1,46 @@
-{% extends "layout.html" %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Book Recommendation System</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="container">
+    <h1>Find Similar Books</h1>
 
-{% block body %}
+    <div class="search">
+      <input id="q" type="text" placeholder="Start typing a book, e.g. Harry…"
+             autocomplete="off" autofocus role="combobox" aria-expanded="false" aria-controls="suggestions">
+      <ul id="suggestions" role="listbox" hidden></ul>
+    </div>
 
-<h1>Find Similar Books</h1>
-<form action="/search" method="POST">
-    <input autocomplete="off" autofocus name="book_title" placeholder="Enter a book" type="text">
-    <button type="submit" class="button">Search</button>
-</form>
+    <section id="controls" hidden>
+      <details open>
+        <summary>Adjust the recipe</summary>
+        <div class="slider"><label>Description <output id="o-wd"></output></label>
+          <input type="range" id="wd" min="0" max="100" value="60"></div>
+        <div class="slider"><label>Genres <output id="o-wg"></output></label>
+          <input type="range" id="wg" min="0" max="100" value="30"></div>
+        <div class="slider"><label>Rating / popularity <output id="o-wr"></output></label>
+          <input type="range" id="wr" min="0" max="100" value="10"></div>
+        <p class="hint">Sliders are re-balanced to total 100%.</p>
 
+        <div class="row">
+          <label>Results
+            <select id="n"><option>5</option><option>8</option><option>10</option><option>15</option></select></label>
+          <label>Min rating
+            <select id="min_rating"><option value="0">any</option><option>3.5</option><option>4</option><option>4.25</option></select></label>
+          <label class="check"><input type="checkbox" id="same_author"> include same author</label>
+        </div>
+      </details>
+    </section>
 
-{% endblock %}
+    <p id="status" class="hint"></p>
+    <div id="results"></div>
+  </div>
+
+  <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

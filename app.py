@@ -1,67 +1,69 @@
-from flask import Flask, render_template, request
-from recommendations import load_data, recommend_books, stacking_matrix, computing_distances
-import pickle, json
+import json
+import pickle
 
+import numpy as np
+from flask import Flask, jsonify, render_template, request
+from scipy import sparse
 
+from recommendations import build_blocks, create_indices, recommend_books
 
 df = pickle.load(open("data/matrices/dataframe.pkl", "rb"))
-indices = pickle.load(open("data/matrices/indices.pkl", "rb"))
-desc_matrix = pickle.load(open("data/matrices/desc_matrix.pkl", "rb"))
-genre_matrix = pickle.load(open("data/matrices/genre_matrix.pkl", "rb"))
-rating_matrix = pickle.load(open("data/matrices/rating_matrix.pkl", "rb"))
-cached_recommendations = json.load(open("data/cached_recommendations.json"))
-
+indices = create_indices(df)
+blocks = build_blocks(
+    np.load("data/matrices/desc.npy"),
+    sparse.load_npz("data/matrices/genre.npz"),
+    np.load("data/matrices/rating.npy"),
+)
+titles = json.load(open("data/book_titles.json"))
+try:
+    covers = json.load(open("data/covers.json"))
+except FileNotFoundError:
+    covers = {}
 
 app = Flask(__name__)
-
 
 
 @app.route("/")
 def index():
     return render_template("index.html")
 
-@app.route("/search", methods=["POST"])
-def search():
-    book_title = request.form["book_title"].lower().strip()
-    if book_title in cached_recommendations:
-        recommendations = cached_recommendations[book_title]
-        return render_template("results.html", recommendations=recommendations, book=book_title)
-    return render_template("error.html", message= f"No recommendations found for {book_title}")
+
+@app.route("/api/titles")
+def api_titles():
+    resp = jsonify(titles)
+    resp.headers["Cache-Control"] = "public, max-age=3600"
+    return resp
 
 
-@app.route("/custom")
-def custom():
-    book = request.args.get("book")
-    if not book:
-        return "Incorrect book", 400
-    weights = [i/10 for i in range(1, 9)]
-    return render_template("custom.html", weights = weights, book=book)
+@app.route("/api/recommend")
+def api_recommend():
+    key = request.args.get("book", "").lower().strip()
+    if key not in indices:
+        return jsonify(error=f"'{key}' is not in the database"), 404
 
+    def num(name, default, lo, hi, cast=float):
+        try:
+            return min(max(cast(request.args.get(name, default)), lo), hi)
+        except (TypeError, ValueError):
+            return default
 
-@app.route("/search_custom", methods=["POST"])
-def search_custom():
-    book = request.form.get("book")
-    if not book:
-        return "incorrect book", 400
-    try:
-        w1 = float(request.form["w1"])
-        w2 = float(request.form["w2"])
-    except (TypeError, ValueError):
-        return render_template("custom.html", book=book, weights = [i/10 for i in range(1, 9)],  message = "Invalid input")
-    
-    w1 = round(w1, 1)
-    w2 = round(w2, 1)
-    w3 = round(1-w1-w2, 1)
+    weights = (num("wd", 0.6, 0, 1), num("wg", 0.3, 0, 1), num("wr", 0.1, 0, 1))
+    recs = recommend_books(
+        df, blocks, int(indices[key]), weights,
+        top_n=num("n", 5, 1, 20, int),
+        same_author=request.args.get("same_author") == "1",
+        min_rating=num("min_rating", 0, 0, 5),
+    )
+    for r in recs:
+        r["cover"] = covers.get(r["key"]) or None
 
-    if ( w1+w2 >= 1 ) or (w3 >= 1) or (w3 < 0.1) or not (0.1 <= w1 <= 0.9) or not (0.1 <= w2 <= 0.9):
-        print(f"w1 = {w1}, w2 = {w2}, w3 = {w3}")
-        return render_template("custom.html", book=book, weights = [i/10 for i in range(1, 9)], message="each weight must be in 0.1-0.9, and w1+w2 must be < 1")
-    
-    Y = stacking_matrix(desc_matrix, genre_matrix, rating_matrix, w1, w2, w3)
-    knn = computing_distances(Y)
-    recommendations = recommend_books(df, Y, knn, indices, book)
+    row = df.iloc[int(indices[key])]
+    return jsonify(
+        source={"key": key, "title": row["Display"], "author": row["Author"],
+                "cover": covers.get(key) or None},
+        results=recs,
+    )
 
-    return render_template("results.html", recommendations=recommendations, book=book)
 
 if __name__ == "__main__":
     app.run(debug=True)

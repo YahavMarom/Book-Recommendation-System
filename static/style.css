@@ -1,72 +1,51 @@
-/* Global */
-body {
-  font-family: Arial, sans-serif;
-  background: #fafafa;
-  margin: 0;
-  padding: 0;
-  color: #333;
-}
+:root { --blue:#1976d2; --d:#1976d2; --g:#43a047; --r:#fb8c00; }
+body { font-family: system-ui, Arial, sans-serif; background:#fafafa; margin:0; color:#333; }
+.container { max-width: 760px; margin: 40px auto; padding: 20px; }
+h1 { font-size: 1.8em; margin-bottom: 20px; }
 
-.container {
-  max-width: 700px;
-  margin: 40px auto;
-  padding: 20px;
-}
+/* search + autocomplete */
+.search { position: relative; }
+#q { width: 100%; box-sizing: border-box; padding: 12px; font-size: 1.05em;
+     border: 1px solid #ccc; border-radius: 6px; }
+#suggestions { position:absolute; left:0; right:0; z-index:10; margin:2px 0 0; padding:0;
+     list-style:none; background:#fff; border:1px solid #ccc; border-radius:6px;
+     box-shadow:0 4px 12px rgba(0,0,0,.12); max-height:340px; overflow:auto; }
+#suggestions li { padding:8px 12px; cursor:pointer; display:flex; justify-content:space-between; gap:12px; }
+#suggestions li small { color:#888; white-space:nowrap; }
+#suggestions li.active, #suggestions li:hover { background:#e8f1fc; }
+mark { background:#ffe58f; padding:0; }
 
-/* Headings */
-h1 {
-  font-size: 1.8em;
-  margin-bottom: 20px;
-}
+/* controls */
+#controls { margin-top:16px; background:#fff; border:1px solid #e3e3e3; border-radius:8px; padding:10px 14px; }
+summary { cursor:pointer; font-weight:bold; }
+.slider { margin:10px 0; }
+.slider label { display:flex; justify-content:space-between; font-weight:bold; margin-bottom:4px; }
+.slider input { width:100%; }
+.row { display:flex; gap:18px; flex-wrap:wrap; align-items:center; margin-top:8px; }
+.row label { font-weight:normal; }
+.hint { color:#777; font-size:.9em; }
+select { padding:4px 6px; border:1px solid #ccc; border-radius:4px; }
 
-/* Forms */
-.form-group {
-  margin-bottom: 15px;
-  display: flex;
-  flex-direction: column;
-}
+/* cards */
+.card { display:flex; gap:14px; background:#fff; border:1px solid #e3e3e3; border-radius:8px;
+        padding:12px; margin:12px 0; animation: pop .25s ease; }
+@keyframes pop { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
+.card img, .cover { width:80px; height:120px; object-fit:cover; border-radius:4px; flex:none; background:#eee; }
+.cover.ph { display:flex; align-items:center; justify-content:center; font-size:2em; }
+.body { flex:1; min-width:0; }
+.card h3 { margin:0 0 2px; font-size:1.05em; }
+.card h3 a { color:var(--blue); text-decoration:none; }
+.card h3 a:hover { text-decoration:underline; }
+.author { color:#666; font-size:.92em; }
+.rating { color:#f5a623; margin:4px 0; }
+.rating span { color:#555; font-size:.9em; }
+.match { height:6px; background:#eee; border-radius:3px; overflow:hidden; }
+.match div { height:100%; background:var(--blue); transition: width .3s; }
 
-label {
-  margin-bottom: 5px;
-  font-weight: bold;
-}
-
-input[type="text"],
-select {
-  padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-}
-
-/* Buttons (works for <a> and <button>) */
-.button,
-button {
-  display: inline-block;
-  padding: 4px 8px;
-  background: #1976d2;
-  color: white;
-  text-decoration: none;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: medium;
-}
-
-
-
-/* Error box */
-.error {
-  color: #b00020;
-  background: #fbe9e9;
-  border: 1px solid #b00020;
-  padding: 10px;
-  border-radius: 5px;
-  margin-bottom: 15px;
-}
-
-a.button#error_button {
-  display: block;        
-  padding: 4px 4px;      
-  width: fit-content;   
-  margin-top: 10px; 
-}
+/* why-this-book */
+.why-bar { display:flex; height:8px; border-radius:4px; overflow:hidden; margin-top:8px; }
+.why-bar span { transition: flex .3s; }
+.why-bar .d { background:var(--d); } .why-bar .g { background:var(--g); } .why-bar .r { background:var(--r); }
+.why-txt { font-size:.82em; color:#666; margin-top:3px; }
+.chips { display:flex; gap:6px; flex-wrap:wrap; margin-top:6px; }
+.chips span { background:#eef2f7; border-radius:12px; padding:2px 9px; font-size:.8em; }
